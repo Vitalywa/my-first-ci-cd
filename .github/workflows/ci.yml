@@ -2,7 +2,7 @@ name: My First Practice Pipeline
 
 on:
   push:
-    branches: [ "main" ] # Запускать при любом пуше в ветку main
+    branches: [ "main" ]
 
 jobs:
   test-job:
@@ -10,17 +10,17 @@ jobs:
 
     steps:
       - name: Say Hello
-        run: echo "Привет! Это мой первый запуск пайплайна!"
+        run: echo "Привет! Это запуск пайплайна с переменными!"
 
-      - name: Show Current Date
-        run: date
+      # ШАГ 1: Генерируем данные и записываем в специальный файл GitHub
+      - name: Generate Dynamic Version
+        run: |
+          echo "APP_VERSION=v1.0.${{ github.run_number }}" >> $GITHUB_ENV
+          echo "Мы сохранили версию во внутренний буфер GitHub"
 
-      - name: Simple Math Check
+      # ШАГ 2: Пытаемся прочитать эту переменную на следующем шаге
+      - name: Use Saved Version
         run: |
-          echo "Проверяем, что 2 + 2 = 4"
-          expr 2 + 2
- # НОВЫЙ ШАГ, КОТОРЫЙ СЛОМАЕТ СБОРКУ
-      - name: Emulate Broken Test
-        run: |
-          echo "Ой, тест упал..."
-          exit 1
+          echo "Успех! Мы видим переменную из прошлого шага:"
+          echo "Текущая версия приложения: $APP_VERSION"
+
