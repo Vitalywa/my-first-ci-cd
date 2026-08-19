@@ -1,18 +1,22 @@
-name: Security Secrets Practice
+name: Conditional Jobs Practice
 
+# Теперь мы разрешаем запуск пайплайна для ВСЕХ веток (две звездочки)
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
 
 jobs:
-  deploy-with-secret:
+  test-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Dummy Step
-        run: echo "Начинаем безопасный деплой..."
+      - name: Run Tests
+        run: echo "Запускаем тесты кода... Они работают для любой ветки!"
 
-      # Шаг, где мы используем наш секрет
-      - name: Connect to Production
-        run: |
-          echo "Имитируем подключение к серверу..."
-          echo "Используем пароль: ${{ secrets.MY_PROD_PASSWORD }}"
+  deploy-job:
+    runs-on: ubuntu-latest
+    needs: [test-job]
+    # Условие: джоба запустится ТОЛЬКО если пуш был в ветку main
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Prod
+        run: echo "Ура! Это ветка main, катим код на продакшн!"
