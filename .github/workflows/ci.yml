@@ -4,31 +4,38 @@ on:
   push:
     branches: [ "main" ]
 
-# Секция jobs — здесь описываются наши независимые сервера-задачи
 jobs:
 
-  # ПЕРВАЯ ДЖОБА (Сервер №1)
   build-job:
     runs-on: ubuntu-latest
     steps:
       - name: Compiling Code
         run: |
-          echo "Запущена виртуальная машина для СБОРКИ..."
           echo "Имитируем компиляцию приложения..."
-          sleep 5 # Команда "поспать" 5 секунд, чтобы симулировать долгую работу
+          sleep 5
 
       - name: Build Success Notice
         run: echo "Сборка успешно завершена!"
 
-  # ВТОРАЯ ДЖОБА (Сервер №2)
   security-check-job:
     runs-on: ubuntu-latest
     steps:
       - name: Scanning Dependencies
         run: |
-          echo "Запущена ВТОРАЯ виртуальная машина для ПРОВЕРКИ БЕЗОПАСНОСТИ..."
           echo "Ищем уязвимости в коде..."
           sleep 5
 
       - name: Security Clear Notice
-        run: echo "Проверка безопасности пройдена. Уязвимостей не найдено!"
+        run: echo "Проверка безопасности пройдена!"
+
+  # НАША НОВАЯ ТРЕТЬЯ ДЖОБА
+  deploy-job:
+    runs-on: ubuntu-latest
+    # КРИТИЧЕСКИ ВАЖНАЯ СТРОКА: ждем успешного завершения ДВУХ предыдущих задач
+    needs: [build-job, security-check-job]
+    steps:
+      - name: Deploying to Production Server
+        run: |
+          echo "Все проверки пройдены!"
+          echo "Скачиваем готовый билд и отправляем на продакшн сервер..."
+          echo "Деплой завершен успешно. Сайт обновлен!"
