@@ -1,0 +1,21 @@
+name: My First Practice Pipeline
+
+on:
+  push:
+    branches: [ "main" ] # Запускать при любом пуше в ветку main
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Say Hello
+        run: echo "Привет! Это мой первый запуск пайплайна!"
+
+      - name: Show Current Date
+        run: date
+
+      - name: Simple Math Check
+        run: |
+          echo "Проверяем, что 2 + 2 = 4"
+          expr 2 + 2
