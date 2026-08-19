@@ -1,7 +1,6 @@
 name: Security Secrets Practice
 
 on:
-  on:
   push:
     branches: [ "main" ]
 
@@ -16,5 +15,4 @@ jobs:
       - name: Connect to Production
         run: |
           echo "Имитируем подключение к серверу..."
-          # Обращаемся к секрету через контекст ${{ secrets.ИМЯ }}
           echo "Используем пароль: ${{ secrets.MY_PROD_PASSWORD }}"
