@@ -1,34 +1,22 @@
-name: Matrix Practice Pipeline
+name: DevSecOps Security Scan
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  matrix-test-job:
-    # Используем переменную из матрицы для выбора ОС сервера!
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      # Матрица — сердце этой джобы
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ["3.9", "3.11", "3.12"]
-
+  security-scan-job:
+    runs-on: ubuntu-latest
     steps:
-      # Скачиваем код (базовый шаг)
+      # 1. Обязательно скачиваем код нашего репозитория
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Специальный готовый Action для настройки Python нужной версии
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # 2. Используем готовый официальный экшен для запуска сканера Trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          # Подставляем версию динамически из матрицы
-          python-version: ${{ matrix.python-version }}
-
-      # Проверяем, что запустилось именно то, что мы просили
-      - name: Verify Environment
-        run: |
-          echo "Текущая операционная система: ${{ matrix.os }}"
-          python --version
+          scan-type: 'fs' # 'fs' означает File System — сканировать файлы нашего проекта
+          scan-ref: '.'   # Точка означает "сканировать текущую папку"
+          format: 'table' # Вывести отчет в виде красивой текстовой таблицы
+          exit-code: '0'  # Если найдет уязвимости — не падать (для первого теста оставим 0)
