@@ -1,22 +1,41 @@
-name: Conditional Jobs Practice
+name: Artifacts Practice Pipeline
 
-# Теперь мы разрешаем запуск пайплайна для ВСЕХ веток (две звездочки)
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "main" ]
 
 jobs:
-  test-job:
+  # 1. Джобы сборки приложения
+  build-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Tests
-        run: echo "Запускаем тесты кода... Они работают для любой ветки!"
+      - name: Create Build File
+        # Симулируем сборку: создаем папку dist и кладем туда файл
+        run: |
+          mkdir dist
+          echo "Версия приложения: 1.0.5. Сборка от $(date)" > dist/app.txt
+          echo "Файл сборки успешно создан локально в папке dist/"
 
-  deploy-job:
+      # ЗАГРУЖАЕМ ФАЙЛ НА СЕРВЕР ГИТХАБА
+      - name: Upload Artifact to GitHub Storage
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-app-build-package # Имя архива (придумываем сами)
+          path: dist/                # Какую папку или файл заархивировать и отправить
+
+  # 2. Джобы тестирования/деплоя (запустится на ДРУГОЙ машине)
+  test-artifact-job:
     runs-on: ubuntu-latest
-    needs: [test-job]
-    # Условие: джоба запустится ТОЛЬКО если пуш был в ветку main
-    if: github.ref == 'refs/heads/main'
+    needs: [build-job] # Ждем, пока build-job загрузит файл
     steps:
-      - name: Deploy to Prod
-        run: echo "Ура! Это ветка main, катим код на продакшн!"
+      # СКАЧИВАЕМ ФАЙЛ С СЕРВЕРА ГИТХАБА
+      - name: Download Artifact from GitHub Storage
+        uses: actions/download-artifact@v4
+        with:
+          name: my-app-build-package # Имя должно строго совпадать с тем, что было при upload
+
+      # Проверяем, что файл действительно появился на этой новой машине
+      - name: Verify Downloaded File
+        run: |
+          echo "Проверяем содержимое скачанного файла:"
+          cat app.txt
