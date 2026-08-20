@@ -1,41 +1,34 @@
-name: Artifacts Practice Pipeline
+name: Matrix Practice Pipeline
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  # 1. Джобы сборки приложения
-  build-job:
-    runs-on: ubuntu-latest
+  matrix-test-job:
+    # Используем переменную из матрицы для выбора ОС сервера!
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Матрица — сердце этой джобы
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.9", "3.11", "3.12"]
+
     steps:
-      - name: Create Build File
-        # Симулируем сборку: создаем папку dist и кладем туда файл
-        run: |
-          mkdir dist
-          echo "Версия приложения: 1.0.5. Сборка от $(date)" > dist/app.txt
-          echo "Файл сборки успешно создан локально в папке dist/"
+      # Скачиваем код (базовый шаг)
+      - name: Check out code
+        uses: actions/checkout@v4
 
-      # ЗАГРУЖАЕМ ФАЙЛ НА СЕРВЕР ГИТХАБА
-      - name: Upload Artifact to GitHub Storage
-        uses: actions/upload-artifact@v4
+      # Специальный готовый Action для настройки Python нужной версии
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          name: my-app-build-package # Имя архива (придумываем сами)
-          path: dist/                # Какую папку или файл заархивировать и отправить
+          # Подставляем версию динамически из матрицы
+          python-version: ${{ matrix.python-version }}
 
-  # 2. Джобы тестирования/деплоя (запустится на ДРУГОЙ машине)
-  test-artifact-job:
-    runs-on: ubuntu-latest
-    needs: [build-job] # Ждем, пока build-job загрузит файл
-    steps:
-      # СКАЧИВАЕМ ФАЙЛ С СЕРВЕРА ГИТХАБА
-      - name: Download Artifact from GitHub Storage
-        uses: actions/download-artifact@v4
-        with:
-          name: my-app-build-package # Имя должно строго совпадать с тем, что было при upload
-
-      # Проверяем, что файл действительно появился на этой новой машине
-      - name: Verify Downloaded File
+      # Проверяем, что запустилось именно то, что мы просили
+      - name: Verify Environment
         run: |
-          echo "Проверяем содержимое скачанного файла:"
-          cat app.txt
+          echo "Текущая операционная система: ${{ matrix.os }}"
+          python --version
